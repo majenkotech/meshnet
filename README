@@ -1,0 +1,17 @@
+MeshNet
+=======
+
+This is a small mesh tunnelling system for Linux.  The basic idea is that it
+allows multiple remote nodes to act as if they are all connected to the same
+local ethernet network.  Each node maintains a list of the addresses of all
+the other nodes in the network and automatically distributes the list to any
+new nodes that connect.
+
+Communication is over UDP, so this will not work for nodes behind NAT
+gateways (home routers, etc). 
+
+All communication is encrypted with AES rijndael-128.
+
+A node, when connecting to the network, needs to know the address of
+one other node to begin communication. That can be any node on the
+network - there is no "master" node.
