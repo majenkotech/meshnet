@@ -14,7 +14,8 @@ struct configuration {
     uint32_t ip;                    // tap IP address
     uint32_t netmask;               // tap subnet /xx
     char psk[1024];                 // AES PSK
-    uint32_t peers[MAX_PEERS];      // List of peer IPs
+    uint32_t peerips[MAX_PEERS];    // List of peer IPs
+    uint16_t peerports[MAX_PEERS];  // List of peer ports
     uint32_t address;               // Public IP address
     uint32_t announce;              // Announce period
     uint16_t port;                  // Communication UDP port
@@ -26,6 +27,7 @@ extern struct configuration config;
 struct host {
     uint64_t mac;
     uint32_t ip;
+    uint16_t port;
     struct host *next;
 };
 
@@ -39,9 +41,10 @@ extern void closeTapDevice();
 extern int initNetwork();
 extern uint32_t aton(const char *);
 extern char *ntoa(uint32_t);
-extern void announceMe(uint32_t);
-extern int setHost(uint64_t, uint32_t);
+extern void announceMe(uint32_t, uint16_t);
+extern int setHost(uint64_t, uint32_t, uint16_t);
 extern uint32_t getHost(uint64_t);
+extern uint16_t getPort(uint64_t);
 extern void printMac(uint64_t);
 extern int netSend(uint64_t, uint8_t *, unsigned long);
 extern void getMyMacAddress();

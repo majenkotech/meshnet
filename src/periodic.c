@@ -20,7 +20,7 @@ void *periodicThread(void *arg)
             struct host *scan;
             for (scan = hosts; scan; scan = scan->next) {
                 if (scan->mac == myMAC) continue;
-				announceMe(scan->ip);
+				announceMe(scan->ip, scan->port);
 			}
 		}
 	}

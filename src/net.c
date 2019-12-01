@@ -71,9 +71,11 @@ void broadcastHosts()
 		ptr[7] = (scan->ip & 0xFF0000) >> 16;
 		ptr[8] = (scan->ip & 0xFF00) >> 8;
 		ptr[9] = (scan->ip & 0xFF);
-		if(count==148) // Maximum number of hosts per packet
+        ptr[10] = (scan->ip & 0xFF00) >> 8;
+        ptr[11] = (scan->ip & 0xFF);
+		if(count==100) // Maximum number of hosts per packet
 		{
-			unsigned long size = count * 10 + 3;
+			unsigned long size = count * 12 + 3;
 			packet[2] = count;
 			broadcastPacket(packet,size);
 			memset(packet, 0, 1600);
@@ -84,11 +86,11 @@ void broadcastHosts()
 			offset = 3;
 			count = 0;
 		}
-		offset+=10;
+		offset+=12;
 	}
 	if(count>0)
 	{
-		unsigned long size = count * 10 + 3;
+		unsigned long size = count * 12 + 3;
 		packet[2] = count;
 		broadcastPacket(packet,size);
 	}
@@ -147,7 +149,9 @@ void *netReaderThread(void *arg)
                     switch(*(buffer+1)) {
                         case CMD_ANNOUNCE: {
                             uint64_t mac;
+                            uint16_t port;
                             mac = 0x0ULL;
+                            port = 0;
                             // This is a peer announcing itself.
                             mac |= (uint64_t)buffer[2] << 40;
                             mac |= (uint64_t)buffer[3] << 32;
@@ -155,8 +159,10 @@ void *netReaderThread(void *arg)
                             mac |= (uint64_t)buffer[5] << 16;
                             mac |= (uint64_t)buffer[6] << 8;
                             mac |= (uint64_t)buffer[7] << 0;
+                            port |= (uint16_t)buffer[8] << 8;
+                            port |= (uint16_t)buffer[9] << 0;
                             if (mac == myMAC) break;
-                            if(setHost(mac,client.sin_addr.s_addr))
+                            if(setHost(mac, client.sin_addr.s_addr, port))
                             {
                                 // Broadcast Hosts Table
                                 broadcastHosts();
@@ -171,7 +177,8 @@ void *netReaderThread(void *arg)
                             {
                                 uint64_t mac;
                                 uint32_t ip;
-                                ptr = buffer + 3 + (i*10);
+                                uint16_t port;
+                                ptr = buffer + 3 + (i*12);
                                 mac = 0x0ULL;
                                 mac |= (uint64_t)ptr[0] << 40;
                                 mac |= (uint64_t)ptr[1] << 32;
@@ -184,8 +191,11 @@ void *netReaderThread(void *arg)
                                 ip |= (uint32_t)ptr[7] << 16;
                                 ip |= (uint32_t)ptr[8] << 8;
                                 ip |= (uint32_t)ptr[9] << 0;
+                                port - 0x0;
+                                port |= (uint16_t)ptr[10] << 8;
+                                port |= (uint16_t)ptr[11] << 0;
 
-                                if(setHost(mac,ip))
+                                if(setHost(mac, ip, port))
                                 {
                                     modified = 1;
                                 }
@@ -211,12 +221,12 @@ void startNetReader()
         pthread_create(&netReader, &attr, netReaderThread, NULL);
 }
 
-int ipSend(uint32_t ip, uint8_t *packet, unsigned long length)
+int ipSend(uint32_t ip, uint16_t port, uint8_t *packet, unsigned long length)
 {
 	int rc;
 	struct sockaddr_in remoteServer;
 	remoteServer.sin_family = AF_INET;
-	remoteServer.sin_port = htons(config.port);
+	remoteServer.sin_port = htons(port);
 	remoteServer.sin_addr.s_addr = ip;
 
 	if(*packet==DT_DATA && length>1400)
@@ -254,7 +264,7 @@ int netSend(uint64_t mac, uint8_t *packet, unsigned long length)
 
         for (scan = hosts; scan; scan = scan->next) {
             if (scan->mac == myMAC) continue;
-			if(ipSend(scan->ip,packet,length)>0) {
+			if(ipSend(scan->ip, scan->port, packet, length)>0) {
 				count++;
 			}
 		}
@@ -262,8 +272,9 @@ int netSend(uint64_t mac, uint8_t *packet, unsigned long length)
 	} else {
         if (mac != myMAC) {
             uint32_t ip = getHost(mac);
+            uint16_t port = getPort(mac);
             if (ip != -1) {
-                return ipSend(ip,packet,length);
+                return ipSend(ip, port, packet, length);
             } else {
                 return -1;
             }
@@ -334,15 +345,15 @@ char *ntoa(uint32_t ip)
 	return inet_ntoa(host.sin_addr);
 }
 
-void announceMe(uint32_t ip)
+void announceMe(uint32_t ip, uint16_t port)
 {
 	uint8_t *packet;
 
-	// Packet format: 0x01 0x00 M0 M1 M2 M3 M4 M5 <PSK>
-	//                          \- MAC Address -/
+	// Packet format: 0x01 0x00 M0 M1 M2 M3 M4 M5 PH PL <PSK>
+	//                          \- MAC Address -/\Port/
 	
-	packet = (uint8_t *)malloc(strlen(config.psk)+9);
-	memset(packet, 0, strlen(config.psk)+9);
+	packet = (uint8_t *)malloc(strlen(config.psk)+11);
+	memset(packet, 0, strlen(config.psk)+11);
 
 	packet[0] = DT_COMMAND; // Command data type
 	packet[1] = CMD_ANNOUNCE; // I am announcing myself to you
@@ -352,10 +363,12 @@ void announceMe(uint32_t ip)
 	packet[5] = (myMAC & 0xFF0000ULL) >> 16;
 	packet[6] = (myMAC & 0xFF00ULL) >> 8;
 	packet[7] = (myMAC & 0xFFULL);
-    memcpy(packet + 8, config.psk, strlen(config.psk));
+    packet[8] = (config.port & 0xFF00) >> 8;
+    packet[9] = (config.port & 0xFF);
+    memcpy(packet + 10, config.psk, strlen(config.psk));
 
 	// We're not interested in sending the trailing 0x00
-	if(ipSend(ip,packet,strlen(config.psk)+8)<=0) {
+	if(ipSend(ip, port, packet, strlen(config.psk)+10)<=0) {
         printf("Error sending announcement\n");
 	}
 

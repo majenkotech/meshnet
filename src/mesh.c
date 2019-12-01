@@ -55,7 +55,7 @@ int loadConfig(const char *file) {
     config.psk[0] = 0;
     config.ip = -1;
     config.netmask = 0;
-    config.peers[0] = -1;
+    config.peerips[0] = -1;
     config.address = -1;
     config.announce = 60;
     config.port = 3647;
@@ -109,9 +109,17 @@ int loadConfig(const char *file) {
                 char *peer = strtok(val, ",");
                 int peerno = 0;
                 while (peer) {
-                    config.peers[peerno] = inet_addr(peer);
+                    uint16_t port = 3647;
+                    char *colon = strchr(peer, ':');
+                    if (colon != NULL) {
+                        *colon = 0;
+                        colon++;
+                        port = strtoul(colon, NULL, 10);
+                    }
+                    config.peerips[peerno] = inet_addr(peer);
+                    config.peerports[peerno] = port;
                     peerno++;
-                    config.peers[peerno] = -1;
+                    config.peerips[peerno] = -1;
                     peer = strtok(NULL, ",");
                 }
                 continue;
@@ -190,7 +198,7 @@ int main(int argc, char *argv[]) {
 	sleep(1);
 
     if (config.address != -1) {
-		setHost(myMAC, config.address);
+		setHost(myMAC, config.address, config.port);
 	}
 
     if (config.ip != -1) {
@@ -225,16 +233,16 @@ int main(int argc, char *argv[]) {
         }
     }
         
-    for (i = 0; (i < MAX_PEERS) && (config.peers[i] != -1); i++) {
+    for (i = 0; (i < MAX_PEERS) && (config.peerips[i] != -1); i++) {
 #ifdef DEBUG
         printf("Announcing to %d.%d.%d.%d\n",
-            (config.peers[i] >> 0) & 0xFF,
-            (config.peers[i] >> 8) & 0xFF,
-            (config.peers[i] >> 16) & 0xFF,
-            (config.peers[i] >> 24) & 0xFF
+            (config.peerips[i] >> 0) & 0xFF,
+            (config.peerips[i] >> 8) & 0xFF,
+            (config.peerips[i] >> 16) & 0xFF,
+            (config.peerips[i] >> 24) & 0xFF
         );
 #endif
-        announceMe(config.peers[i]);
+        announceMe(config.peerips[i], config.peerports[i]);
     }
             
 
