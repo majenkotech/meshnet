@@ -7,6 +7,7 @@ pthread_t periodic;
 // Things that need to be done periodically
 void *periodicThread(void *arg)
 {
+    int i;
 	while(1)
 	{
 		sleep(1);
@@ -22,6 +23,11 @@ void *periodicThread(void *arg)
                 if (scan->mac == myMAC) continue;
 				announceMe(scan->ip, scan->port);
 			}
+
+            for (i = 0; (i < MAX_PEERS) && (config.peerips[i] != -1); i++) {
+                announceMe(config.peerips[i], config.peerports[i]);
+            }
+
 		}
 	}
 }

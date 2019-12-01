@@ -342,8 +342,11 @@ char *ntoa(uint32_t ip)
 	return inet_ntoa(host.sin_addr);
 }
 
-void announceMe(uint32_t ip, uint16_t port)
-{
+void announceMe(uint32_t ip, uint16_t port) {
+
+#ifdef DEBUG
+    printf("announceMe(%s, %d)\n", ntoa(ip), port);
+#endif
 	uint8_t *packet;
 
 	// Packet format: 0x01 0x00 M0 M1 M2 M3 M4 M5 PH PL <PSK>
