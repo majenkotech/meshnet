@@ -45,8 +45,6 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
 
     struct host *scan;
 
-    int modified = 0;
-
     for (scan = hosts; scan; scan = scan->next) {
         if ((scan->ip == ip) && (scan->mac == mac) && (scan->port == port)) {
             return 0;
@@ -60,34 +58,32 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
                 scan->ip == ip;
                 scan->port = port;
             }
-            modified++;
 #ifdef DEBUG
             printf("          to %s:%d\n",
                 ntoa(scan->ip), scan->port);
 #endif
+            return 1;
         }
     }
 
-    if (modified == 0) {
-        struct host *newhost = (struct host *)malloc(sizeof(struct host));
-        newhost->ip = ip;
-        newhost->mac = mac;
-        newhost->port = port;
-        newhost->next = NULL;
+    struct host *newhost = (struct host *)malloc(sizeof(struct host));
+    newhost->ip = ip;
+    newhost->mac = mac;
+    newhost->port = port;
+    newhost->next = NULL;
 
 #ifdef DEBUG
-        printf("Adding new host mapping for %012" PRIx64 " = %s:%d\n",
-            newhost->mac, ntoa(newhost->ip), newhost->port);
+    printf("Adding new host mapping for %012" PRIx64 " = %s:%d\n",
+        newhost->mac, ntoa(newhost->ip), newhost->port);
 #endif
 
-        if (hosts == NULL) {
-            hosts = newhost;
-        } else {
-            for (scan = hosts; scan; scan = scan->next) {
-                if (scan->next == NULL) {
-                    scan->next = newhost;
-                    break;
-                }
+    if (hosts == NULL) {
+        hosts = newhost;
+    } else {
+        for (scan = hosts; scan; scan = scan->next) {
+            if (scan->next == NULL) {
+                scan->next = newhost;
+                break;
             }
         }
     }
