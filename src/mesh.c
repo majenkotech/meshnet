@@ -118,6 +118,10 @@ int loadConfig(const char *file) {
                     }
                     config.peerips[peerno] = inet_addr(peer);
                     config.peerports[peerno] = port;
+
+#if DEBUG
+                    printf("Adding peer %s:%d\n", ntoa(config.peerips[peerno]), config.peerports[peerno]);
+#endif
                     peerno++;
                     config.peerips[peerno] = -1;
                     peer = strtok(NULL, ",");

@@ -71,8 +71,8 @@ void broadcastHosts()
 		ptr[7] = (scan->ip & 0xFF0000) >> 16;
 		ptr[8] = (scan->ip & 0xFF00) >> 8;
 		ptr[9] = (scan->ip & 0xFF);
-        ptr[10] = (scan->ip & 0xFF00) >> 8;
-        ptr[11] = (scan->ip & 0xFF);
+        ptr[10] = (scan->port & 0xFF00) >> 8;
+        ptr[11] = (scan->port & 0xFF);
 		if(count==100) // Maximum number of hosts per packet
 		{
 			unsigned long size = count * 12 + 3;
@@ -191,7 +191,7 @@ void *netReaderThread(void *arg)
                                 ip |= (uint32_t)ptr[7] << 16;
                                 ip |= (uint32_t)ptr[8] << 8;
                                 ip |= (uint32_t)ptr[9] << 0;
-                                port - 0x0;
+                                port = 0x0;
                                 port |= (uint16_t)ptr[10] << 8;
                                 port |= (uint16_t)ptr[11] << 0;
 

@@ -56,8 +56,8 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port) {
             scan->port = port;
             modified++;
 #ifdef DEBUG
-            printf("Updating IP address for %012" PRIx64 " to %08" PRIx32 "\n",
-                scan->mac, scan->ip);
+            printf("Updating IP address for %012" PRIx64 " to %08" PRIx32 ":%d\n",
+                scan->mac, scan->ip, scan->port);
 #endif
         }
     }
