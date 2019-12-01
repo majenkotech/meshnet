@@ -31,5 +31,9 @@ AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
 AC_PROG_CC
 AC_PROG_CXX
 
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([
+    Makefile 
+    src/Makefile
+    data/Makefile
+])
 AC_OUTPUT

@@ -18,6 +18,7 @@ struct configuration {
     uint32_t address;               // Public IP address
     uint32_t announce;              // Announce period
     uint16_t port;                  // Communication UDP port
+    uint8_t fork;                   // Should we fork into the backgroun?
 };
 
 extern struct configuration config;

@@ -1,4 +1,4 @@
-bin_PROGRAMS=meshnet
+sbin_PROGRAMS=meshnet
 #meshnet_SOURCES=aes.cpp arp.cpp mesh.cpp net.cpp periodic.cpp tap.cpp tap_dev.cpp
 meshnet_SOURCES=mesh.c aes.c net.c arp.c tap.c periodic.c tap_dev.c
 meshnet_LDFLAGS=-pthread

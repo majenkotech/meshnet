@@ -59,6 +59,7 @@ int loadConfig(const char *file) {
     config.address = -1;
     config.announce = 60;
     config.port = 3647;
+    config.fork = 0;
 
     char temp[1024];
     int line = 0;
@@ -131,7 +132,12 @@ int loadConfig(const char *file) {
                 continue;
             }
 
-            printf("[%s] = [%s]\n", key, val);
+            if ((strcasecmp(key, "fork") == 0) && (strcasecmp(val, "yes") == 0)) {
+                config.fork = 1;
+                continue;
+            }
+
+            printf("Syntax error at line %d\n", line);
         } else {
             printf("Syntax error at line %d\n", line);
             fclose(f);
@@ -150,12 +156,13 @@ int main(int argc, char *argv[]) {
 	signal(SIGTERM,&cleanexit);
 
     if (argc != 2) {
-        usage();
-        return -1;
-    }
-
-    if (loadConfig(argv[1]) == -1) {
-        return -1;
+        if (loadConfig(SYSCONF "/meshnet/default.mesh") == -1) {
+            return -1;
+        }
+    } else {
+        if (loadConfig(argv[1]) == -1) {
+            return -1;
+        }
     }
 
     if (config.psk[0] == 0) {
@@ -165,12 +172,12 @@ int main(int argc, char *argv[]) {
 
 	aes_init(config.psk);
 
-#ifndef DEBUG
+    if (config.fork == 1) {
 		if(fork())
 		{
 			exit(0);
 		}
-#endif
+    }
 
 	openTapDevice();
 	if (initNetwork() != 0) {

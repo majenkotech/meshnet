@@ -88,9 +88,13 @@ void openTapDevice()
     tapname[0] = 0;
 	tapdev = tap_open(tapname);
     if (tapdev >= 0) {
+#ifdef DEBUG
         printf("Opened TAP device %s\n",tapname);
+#endif
         getMyMacAddress();
+#ifdef DEBUG
         printf("My MAC address: %012" PRIx64 "\n", myMAC);
+#endif
     } else {
         printf("Unable to open TAP device: %s\n", strerror(errno));
     }

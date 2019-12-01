@@ -1,0 +1,10 @@
+[Unit]
+Description=MeshNET Daemon
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/meshnet
+
+[Install]
+WantedBy=network.target
+

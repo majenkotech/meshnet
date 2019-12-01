@@ -1,0 +1,10 @@
+[Unit]
+Description=MeshNET Daemon
+
+[Service]
+Type=simple
+ExecStart=@sbindir@/meshnet
+
+[Install]
+WantedBy=network.target
+
