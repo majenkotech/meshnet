@@ -7,7 +7,7 @@ local ethernet network.  Each node maintains a list of the addresses of all
 the other nodes in the network and automatically distributes the list to any
 new nodes that connect.
 
-Communication is over UDP, so this will not work for nodes behind NAT
+Communication is over UDP, so you will need to set up port forwarding on NAT
 gateways (home routers, etc). 
 
 All communication is encrypted with AES rijndael-128.
@@ -29,7 +29,7 @@ of a list of key/value pairs. The default sample file contains:
 
 * psk - The pre-shared key for encryption
 * network - the IP address and subnet of the virtual ethernet interface
-* peer - A list of peers to connect to initially
+* peer - A list of peers to connect to initially - can include :port
 * ip - The outside-facing IP address of this machine
 * port - The UDP port to communicate on
 * announce - The number of seconds between auto-announcements
