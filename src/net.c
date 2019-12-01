@@ -58,7 +58,6 @@ void broadcastHosts()
     struct host *scan;
 
     for (scan = hosts; scan; scan = scan->next) {
-        if (scan->mac == myMAC) continue;
 		count++;
 		ptr = packet + offset;
 		ptr[0] = (scan->mac & 0xFF0000000000ULL) >> 40;
