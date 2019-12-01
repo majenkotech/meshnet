@@ -64,6 +64,8 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
             if (updateIp == 1) {
                 scan->ip == ip;
                 scan->port = port;
+            } else {
+                return 0;
             }
 #ifdef DEBUG
             printf("          to %s:%d\n",
