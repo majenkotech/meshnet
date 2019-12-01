@@ -44,8 +44,8 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
     if ((ip & 0xFF) == 0x7f) return 0;
 
 #ifdef DEBUG
-    printf("setHost(0x%012" PRIx64 ", 0x%08" PRIx32 ", %d, %d)\n",
-        mac, ip, port, updateIp
+    printf("setHost(%012" PRIx64 ", %s, %d, %d)\n",
+        mac, ntoa(ip), port, updateIp
     );
 #endif
 
@@ -57,20 +57,20 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
             return 0;
         }
         if (scan->mac == mac) {
-#ifdef DEBUG
-            printf("Updating IP address for %012" PRIx64 " from %s:%d\n",
-                scan->mac, ntoa(scan->ip), scan->port);
-#endif
             if (updateIp == 1) {
+#ifdef DEBUG
+                printf("Updating IP address for %012" PRIx64 " from %s:%d\n",
+                    scan->mac, ntoa(scan->ip), scan->port);
+#endif
                 scan->ip == ip;
                 scan->port = port;
+#ifdef DEBUG
+                printf("          to %s:%d\n",
+                    ntoa(scan->ip), scan->port);
+#endif
             } else {
                 return 0;
             }
-#ifdef DEBUG
-            printf("          to %s:%d\n",
-                ntoa(scan->ip), scan->port);
-#endif
             return 1;
         }
     }
