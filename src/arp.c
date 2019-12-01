@@ -38,7 +38,7 @@ uint16_t getPort(uint64_t address) {
 
 // Set the IP address of a host (keyed by MAC address) and return 1 if the host map
 // has been changed
-int setHost(uint64_t mac, uint32_t ip, uint16_t port) {
+int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
     if (ip == 0) return 0;
     if (ip == -1) return 0;
     if ((ip & 0xFF) == 0x7f) return 0;
@@ -52,8 +52,10 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port) {
             return 0;
         }
         if (scan->mac == mac) {
-            scan->ip == ip;
-            scan->port = port;
+            if (updateIp == 1) {
+                scan->ip == ip;
+                scan->port = port;
+            }
             modified++;
 #ifdef DEBUG
             printf("Updating IP address for %012" PRIx64 " to %08" PRIx32 ":%d\n",

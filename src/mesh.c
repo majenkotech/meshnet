@@ -202,7 +202,7 @@ int main(int argc, char *argv[]) {
 	sleep(1);
 
     if (config.address != -1) {
-		setHost(myMAC, config.address, config.port);
+		setHost(myMAC, config.address, config.port, 1);
 	}
 
     if (config.ip != -1) {
