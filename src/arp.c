@@ -43,6 +43,12 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
     if (ip == -1) return 0;
     if ((ip & 0xFF) == 0x7f) return 0;
 
+#ifdef DEBUG
+    printf("setHost(0x%012" PRIx64 ", 0x%08" PRIx32 ", %d, %d)\n",
+        mac, ip, port, updateIp
+    );
+#endif
+
     struct host *scan;
 
     for (scan = hosts; scan; scan = scan->next) {

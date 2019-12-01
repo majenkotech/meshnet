@@ -161,9 +161,7 @@ void *netReaderThread(void *arg)
                             port |= (uint16_t)buffer[8] << 8;
                             port |= (uint16_t)buffer[9] << 0;
                             if (mac == myMAC) break;
-                            if(setHost(mac, client.sin_addr.s_addr, port, 1))
-                            {
-                                // Broadcast Hosts Table
+                            if(setHost(mac, client.sin_addr.s_addr, port, 1)) {
                                 broadcastHosts();
                             }
                         } break;
