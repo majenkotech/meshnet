@@ -58,8 +58,8 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
             }
             modified++;
 #ifdef DEBUG
-            printf("Updating IP address for %012" PRIx64 " to %08" PRIx32 ":%d\n",
-                scan->mac, scan->ip, scan->port);
+            printf("Updating IP address for %012" PRIx64 " to %s:%d\n",
+                scan->mac, ntoa(scan->ip), scan->port);
 #endif
         }
     }
@@ -72,8 +72,8 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
         newhost->next = NULL;
 
 #ifdef DEBUG
-        printf("Adding new host mapping for %012" PRIx64 " = %08" PRIx32 ":%d\n",
-            newhost->mac, newhost->ip, newhost->port);
+        printf("Adding new host mapping for %012" PRIx64 " = %s:%d\n",
+            newhost->mac, ntoa(newhost->ip), newhost->port);
 #endif
 
         if (hosts == NULL) {
