@@ -132,6 +132,9 @@ void *netReaderThread(void *arg)
                     memset(all, 0, 3200);
                     memcpy(all,part1,part1len);
                     memcpy(all+part1len,part2,part2len);
+#ifdef DEBUG
+                    printf("== Received split frame from network ==\n");
+#endif
                     if (write(tapdev,all,part1len+part2len) <= 0) {
                         printf("Write error sending packet\n");
                     }
@@ -139,6 +142,10 @@ void *netReaderThread(void *arg)
                 case DT_DATA: {
                     // This is a data packet.  Forward it to the TAP device.
                     payload = buffer+1;
+#ifdef DEBUG
+                    printf("== Received frame from network type %02x%02x==\n", payload[12], payload[13]);
+#endif
+
                     if (write(tapdev,payload,readlen-1) <= 0) {
                         printf("Write error sending packet\n");
                     }
@@ -257,8 +264,7 @@ int netSend(uint64_t mac, uint8_t *packet, unsigned long length)
     struct host *scan;
 
 	// Broadcast FF:FF:FF:FF:FF:FF
-	if(mac == 0xFFFFFFFFFFFFULL) {
-
+	if((mac == 0xFFFFFFFFFFFFULL) || ((mac & 0xFFFF00000000UL) == 0x333300000000UL)) {
         for (scan = hosts; scan; scan = scan->next) {
             if (scan->mac == myMAC) continue;
 			if(ipSend(scan->ip, scan->port, packet, length)>0) {

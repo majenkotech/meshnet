@@ -58,6 +58,17 @@ void *tapReaderThread(void *arg)
 		packet[0] = DT_DATA;
 		memcpy(packet+1,buffer,n);
 
+#ifdef DEBUG
+                    printf("== Received frame from tap type %02x%02x==\n", buffer[12], buffer[13]);
+                    if ((buffer[12] == 0x86) && (buffer[13] == 0xdd)) {
+                        printf("Source:      %02x:%02x:%02x:%02x:%02x:%02x\n",
+                            buffer[6], buffer[7], buffer[8], buffer[9], buffer[10], buffer[11]);
+                        printf("Destination: %02x:%02x:%02x:%02x:%02x:%02x\n",
+                            buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5]);
+                    }
+#endif
+
+
 		// Extract the destination MAC address from the packet header
 		mac = 0x0ULL;
         

@@ -36,6 +36,30 @@ uint16_t getPort(uint64_t address) {
     return -1;
 }
 
+// Scan through the hosts table looking for any entries where the ip and port match
+// but the MAC address does NOT.  These are redundant entries from some time in
+// the past and must be deleted.
+void purgeHostsTable(uint64_t mac, uint32_t ip, uint16_t port) {
+
+    if (hosts == NULL) return;
+
+    if ((hosts->ip == ip) && (hosts->port == port) && (hosts->mac != mac)) {
+        struct host *old = hosts;
+        hosts = hosts->next;
+        free(old);
+        return;
+    }
+
+    struct host *scan;
+    for (scan = hosts; scan && scan->next; scan = scan->next) {
+        if ((scan->next->ip == ip) && (scan->next->port == port) && (scan->next->mac != mac)) {
+            struct host *old = scan->next;
+            scan->next = scan->next->next;
+            free(old);
+        } 
+    }
+}
+
 // Set the IP address of a host (keyed by MAC address) and return 1 if the host map
 // has been changed
 int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
@@ -54,6 +78,7 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
     for (scan = hosts; scan; scan = scan->next) {
         if ((scan->ip == ip) && (scan->mac == mac) && (scan->port == port)) {
             printf("Found dupliacte\n");
+            purgeHostsTable(mac, ip, port);
             return 0;
         }
         if (scan->mac == mac) {
@@ -68,6 +93,7 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
                 printf("          to %s:%d\n",
                     ntoa(scan->ip), scan->port);
 #endif
+                purgeHostsTable(mac, ip, port);
             } else {
                 return 0;
             }
