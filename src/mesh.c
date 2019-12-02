@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <pthread.h>
+#include <sys/wait.h>
 
 #include "mesh.h"
 
@@ -22,6 +23,11 @@ void cleanexit(int signal) {
 //	pthread_kill(netReader,SIGINT);
 //	closeTapDevice();
 	exit(0);
+}
+
+void reap(int signal) {
+    int wstatus;
+    waitpid(-1, &wstatus, WNOHANG);
 }
 
 void usage() {
@@ -150,9 +156,10 @@ int loadConfig(const char *file) {
 int main(int argc, char *argv[]) {
     int i;
 
-	signal(SIGINT,&cleanexit);
-	signal(SIGKILL,&cleanexit);
-	signal(SIGTERM,&cleanexit);
+	signal(SIGINT,  &cleanexit);
+	signal(SIGKILL, &cleanexit);
+	signal(SIGTERM, &cleanexit);
+    signal(SIGCHLD, &reap);
 
     if (argc != 2) {
         if (loadConfig(SYSCONF "/meshnet/default.mesh") == -1) {
