@@ -40,7 +40,7 @@ uint16_t getPort(uint64_t address) {
 // but the MAC address does NOT.  These are redundant entries from some time in
 // the past and must be deleted.
 void purgeHostsTable(uint64_t mac, uint32_t ip, uint16_t port) {
-
+return; // broken
     if (hosts == NULL) return;
 
     if ((hosts->ip == ip) && (hosts->port == port) && (hosts->mac != mac)) {
