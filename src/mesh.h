@@ -13,6 +13,7 @@
 struct configuration {
     uint32_t ip;                    // tap IP address
     uint32_t netmask;               // tap subnet /xx
+    char network6[1024];            // IPv6 address and subnet
     char psk[1024];                 // AES PSK
     uint32_t peerips[MAX_PEERS];    // List of peer IPs
     uint16_t peerports[MAX_PEERS];  // List of peer ports

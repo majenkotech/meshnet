@@ -55,6 +55,7 @@ int loadConfig(const char *file) {
     config.psk[0] = 0;
     config.ip = -1;
     config.netmask = 0;
+    config.network6[0] = 0;
     config.peerips[0] = -1;
     config.address = -1;
     config.announce = 60;
@@ -68,6 +69,8 @@ int loadConfig(const char *file) {
 
         char *key = strtok(temp, " \t\n");
         char *val = strtok(NULL, " \t\n");
+
+        if (key == NULL) continue;
 
         if (val) {
 
@@ -101,6 +104,11 @@ int loadConfig(const char *file) {
                     fclose(f);
                     return -1;
                 }
+                continue;
+            }
+
+            if (strcasecmp(key, "network6") == 0) {
+                strcpy(config.network6, val);
                 continue;
             }
 
@@ -206,7 +214,7 @@ int main(int argc, char *argv[]) {
 	}
 
     if (config.ip != -1) {
-        char temp[1024];
+        char temp[2048];
 
         sprintf(temp, "/sbin/ifconfig %s up", tapname);
         if (system(temp) != 0) {
@@ -227,6 +235,15 @@ int main(int argc, char *argv[]) {
             printf("Error setting IP address\n");
             return -1;
         }
+
+        if (config.network6[0]) {
+            sprintf(temp, "/sbin/ifconfig %s add %s", tapname, config.network6);
+            if (system(temp) != 0) {
+                printf("Error setting IPv6 address\n");
+                return -1;
+            }
+        }
+
     } else { // We want DHCP?
 #ifdef DEBUG
         printf("Starting dhclient...\n");
