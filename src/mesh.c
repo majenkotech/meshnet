@@ -15,7 +15,9 @@ void threadexit(int signal) {
 }
 
 void cleanexit(int signal) {
-	printf("Terminatin.\n");
+#ifdef DEBUG
+	printf("Terminating.\n");
+#endif
 //	pthread_kill(tapReader,SIGINT);
 //	pthread_kill(netReader,SIGINT);
 //	closeTapDevice();

@@ -77,7 +77,9 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
 
     for (scan = hosts; scan; scan = scan->next) {
         if ((scan->ip == ip) && (scan->mac == mac) && (scan->port == port)) {
+#ifdef DEBUG
             printf("Found dupliacte\n");
+#endif
             purgeHostsTable(mac, ip, port);
             return 0;
         }
