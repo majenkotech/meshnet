@@ -1,0 +1,4 @@
+#!/bin/bash
+
+/sbin/ifconfig $1 up
+/sbin/ifconfig $1 inet 10.0.0.1/24

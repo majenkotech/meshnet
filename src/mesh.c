@@ -54,10 +54,9 @@ int loadConfig(const char *file) {
         return -1;
     }
 
+    config.ifup[0] = 0;
+    config.ifdown[0] = 0;
     config.psk[0] = 0;
-    config.ip = -1;
-    config.netmask = 0;
-    config.network6[0] = 0;
     config.peerips[0] = -1;
     config.address = -1;
     config.announce = 60;
@@ -82,35 +81,13 @@ int loadConfig(const char *file) {
                 continue;
             }
 
-            if (strcasecmp(key, "network") == 0) {
-                char *ip1 = strtok(val, ".");
-                char *ip2 = strtok(NULL, ".");
-                char *ip3 = strtok(NULL, ".");
-                char *ip4 = strtok(NULL, "/");
-                char *mask = strtok(NULL, "\n");
-
-                if (mask) {
-                    uint8_t ip1n = strtoul(ip1, NULL, 10);
-                    uint8_t ip2n = strtoul(ip2, NULL, 10);
-                    uint8_t ip3n = strtoul(ip3, NULL, 10);
-                    uint8_t ip4n = strtoul(ip4, NULL, 10);
-                    uint8_t maskn = strtoul(mask, NULL, 10);
-                    config.ip = 0;
-                    config.ip |= (uint32_t)ip4n << 24;
-                    config.ip |= (uint32_t)ip3n << 16;
-                    config.ip |= (uint32_t)ip2n << 8;
-                    config.ip |= (uint32_t)ip1n << 0;
-                    config.netmask = maskn;
-                } else {
-                    printf("Syntax error at line %d\n", line);
-                    fclose(f);
-                    return -1;
-                }
+            if (strcasecmp(key, "ifup") == 0) {
+                strcpy(config.ifup, val);
                 continue;
             }
-
-            if (strcasecmp(key, "network6") == 0) {
-                strcpy(config.network6, val);
+            
+            if (strcasecmp(key, "ifdown") == 0) {
+                strcpy(config.ifdown, val);
                 continue;
             }
 
@@ -215,44 +192,10 @@ int main(int argc, char *argv[]) {
 		setHost(myMAC, config.address, config.port, 1);
 	}
 
-    if (config.ip != -1) {
-        char temp[2048];
-
-        sprintf(temp, "/sbin/ifconfig %s up", tapname);
-        if (system(temp) != 0) {
-            printf("Error bringing up interface.\n");
-            return -1;
-        }
-
-        sprintf(temp, "/sbin/ifconfig %s inet %d.%d.%d.%d/%d", 
-            tapname,
-            (config.ip >> 0) & 0xFF,
-            (config.ip >> 8) & 0xFF,
-            (config.ip >> 16) & 0xFF,
-            (config.ip >> 24) & 0xFF,
-            config.netmask
-        );
-
-        if (system(temp) != 0) {
-            printf("Error setting IP address\n");
-            return -1;
-        }
-
-        if (config.network6[0]) {
-            sprintf(temp, "/sbin/ifconfig %s add %s", tapname, config.network6);
-            if (system(temp) != 0) {
-                printf("Error setting IPv6 address\n");
-                return -1;
-            }
-        }
-
-    } else { // We want DHCP?
-#ifdef DEBUG
-        printf("Starting dhclient...\n");
-#endif
+    if (config.ifup[0]) {
         if (!fork()) {
-            execl("/sbin/dhclient", "dhclient", tapname, NULL);
-            exit(0);
+            execl(config.ifup, "ifup-meshnet", tapname, NULL);
+            return 0;
         }
     }
         
@@ -267,9 +210,15 @@ int main(int argc, char *argv[]) {
 #endif
         announceMe(config.peerips[i], config.peerports[i]);
     }
-            
 
 	pthread_join(tapReader,NULL);
+
+    if (config.ifdown[0]) {
+        if (!fork()) {
+            execl(config.ifdown, "ifdown-meshnet", tapname, NULL);
+            return 0;
+        }
+    }
 
 	closeTapDevice();
 

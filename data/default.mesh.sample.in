@@ -1,5 +1,6 @@
 psk         WellingtonBootsAreMadeOfRubber
-network     10.0.0.1/24
+ifup        @configdir@/ifup
+ifdown      @configdir@/ifdown
 peer        1.2.3.4,2.3.4.5
 ip          3.4.5.6
 port        3647

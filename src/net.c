@@ -136,7 +136,9 @@ void *netReaderThread(void *arg)
                     printf("== Received split frame from network ==\n");
 #endif
                     if (write(tapdev,all,part1len+part2len) <= 0) {
+#ifdef DEBUG
                         printf("Write error sending packet\n");
+#endif
                     }
                 } break;
                 case DT_DATA: {
@@ -147,7 +149,9 @@ void *netReaderThread(void *arg)
 #endif
 
                     if (write(tapdev,payload,readlen-1) <= 0) {
+#ifdef DEBUG
                         printf("Write error sending packet\n");
+#endif
                     }
                 } break;
                 case DT_COMMAND: {
