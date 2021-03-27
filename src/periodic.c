@@ -18,12 +18,20 @@ void *periodicThread(void *arg)
             dumpMap();
             printf("Running periodic announcement\n");
 #endif
-            struct host *scan;
-            int i;
+            int i,j;
             for (i = 0; i < MAX_HOSTS; i++) {
                 if (hosts[i].valid == 0) continue;
                 if (hosts[i].mac == myMAC) continue;
-				announceMe(hosts[i].ip, hosts[i].port);
+                int ispeer = 0;
+                for (j = 0; (j < MAX_PEERS) && (config.peerips[j] != -1); j++) {
+                    if ((config.peerips[j] == hosts[i].ip) && (config.peerports[j] == hosts[i].port)) {
+                        ispeer = 1;
+                        break;
+                    }
+                }
+                if (!ispeer) {
+                    announceMe(hosts[i].ip, hosts[i].port);
+                }
 			}
 
             for (i = 0; (i < MAX_PEERS) && (config.peerips[i] != -1); i++) {

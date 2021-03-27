@@ -48,9 +48,9 @@ uint16_t getPort(uint64_t address) {
 // Scan through the hosts table looking for any entries where the ip and port match
 // but the MAC address does NOT.  These are redundant entries from some time in
 // the past and must be deleted.
-void purgeHostsTable(uint64_t mac, uint32_t ip, uint16_t port) {
+int purgeHostsTable(uint64_t mac, uint32_t ip, uint16_t port) {
     int i;
-
+    int modified = 0;
     for (i = 0; i < MAX_HOSTS; i++) {
         if (hosts[i].valid = 0) continue;
 
@@ -59,16 +59,20 @@ void purgeHostsTable(uint64_t mac, uint32_t ip, uint16_t port) {
             printf("Purging %012" PRIx64" at %s:%d\n", hosts[i].mac, ntoa(hosts[i].ip), hosts[i].port);
 #endif
             hosts[i].valid = 0;
+            modified = 1;
         }
     }
+    return modified;
 }
 
 // Set the IP address of a host (keyed by MAC address) and return 1 if the host map
 // has been changed
-int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
+int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp, uint8_t auth) {
     if (ip == 0) return 0;
     if (ip == -1) return 0;
     if ((ip & 0xFF) == 0x7f) return 0;
+
+    int modified = 0;
 
 #ifdef DEBUG
     printf("setHost(%012" PRIx64 ", %s, %d, %d)\n",
@@ -78,16 +82,19 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
 
     int i;
 
+    if (auth) {
+        modified = purgeHostsTable(mac, ip, port);
+    }
+
     int found = 0;
     for (i = 0; i < MAX_HOSTS; i++) {
         if (hosts[i].valid == 0) continue;
         if ((hosts[i].ip == ip) && (hosts[i].mac == mac) && (hosts[i].port == port)) {
             found = 1;
-            if (updateIp) {
+            if (auth) {
                 hosts[i].seen = time(NULL);
+                modified = 1;
             }
-            // Already there, skip.
-	    return 0;
         }
         if (hosts[i].mac == mac) {
             if (updateIp == 1) {
@@ -95,7 +102,7 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
                 hosts[i].ip = ip;
                 hosts[i].port = port;
                 found = 1;
-                return 1;
+                modified = 1;
             }
         }
     }
@@ -108,6 +115,7 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
                 hosts[i].port = port;
                 hosts[i].valid = 1;
                 hosts[i].seen = time(NULL);
+                modified = 1;
                 break;
             }
         }
@@ -117,5 +125,5 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
     dumpMap();
 #endif
 
-    return 1;
+    return modified;
 }

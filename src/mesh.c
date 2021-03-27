@@ -226,7 +226,7 @@ int main(int argc, char *argv[]) {
 	sleep(1);
 
     if (config.address != -1) {
-		setHost(myMAC, config.address, config.port, 1);
+		setHost(myMAC, config.address, config.port, 1, 1);
 	}
 
     if (config.ifup[0]) {
