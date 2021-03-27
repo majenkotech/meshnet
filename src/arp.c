@@ -87,7 +87,7 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
                 hosts[i].seen = time(NULL);
             }
             // Already there, skip.
-            break;
+	    return 0;
         }
         if (hosts[i].mac == mac) {
             if (updateIp == 1) {
@@ -95,7 +95,7 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
                 hosts[i].ip = ip;
                 hosts[i].port = port;
                 found = 1;
-                break;
+                return 1;
             }
         }
     }

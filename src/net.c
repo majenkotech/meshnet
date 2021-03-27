@@ -92,6 +92,9 @@ void broadcastHosts()
 	}
 	if(count>0)
 	{
+#ifdef DEBUG
+		printf("Broadcasting %d addresses\n", count);
+#endif	
 		unsigned long size = count * 12 + 3;
 		packet[2] = count;
 		broadcastPacket(packet,size);
