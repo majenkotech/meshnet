@@ -45,7 +45,7 @@ extern int initNetwork();
 extern uint32_t aton(const char *);
 extern char *ntoa(uint32_t);
 extern void announceMe(uint32_t, uint16_t);
-extern int setHost(uint64_t, uint32_t, uint16_t, uint8_t);
+extern int setHost(uint64_t, uint32_t, uint16_t, uint8_t, uint8_t);
 extern uint32_t getHost(uint64_t);
 extern uint16_t getPort(uint64_t);
 extern void printMac(uint64_t);
