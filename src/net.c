@@ -55,23 +55,26 @@ void broadcastHosts()
 	offset = 3;
 	count = 0;
 
-    struct host *scan;
+    int i;
 
-    for (scan = hosts; scan; scan = scan->next) {
+    for (i = 0; i < MAX_HOSTS; i++) {
+        if (hosts[i].valid == 0) {
+            continue;
+        }
 		count++;
 		ptr = packet + offset;
-		ptr[0] = (scan->mac & 0xFF0000000000ULL) >> 40;
-		ptr[1] = (scan->mac & 0xFF00000000ULL) >> 32;
-		ptr[2] = (scan->mac & 0xFF000000ULL) >> 24;
-		ptr[3] = (scan->mac & 0xFF0000ULL) >> 16;
-		ptr[4] = (scan->mac & 0xFF00ULL) >> 8;
-		ptr[5] = (scan->mac & 0xFFULL);
-		ptr[6] = (scan->ip & 0xFF000000) >> 24;
-		ptr[7] = (scan->ip & 0xFF0000) >> 16;
-		ptr[8] = (scan->ip & 0xFF00) >> 8;
-		ptr[9] = (scan->ip & 0xFF);
-        ptr[10] = (scan->port & 0xFF00) >> 8;
-        ptr[11] = (scan->port & 0xFF);
+		ptr[0] = (hosts[i].mac & 0xFF0000000000ULL) >> 40;
+		ptr[1] = (hosts[i].mac & 0xFF00000000ULL) >> 32;
+		ptr[2] = (hosts[i].mac & 0xFF000000ULL) >> 24;
+		ptr[3] = (hosts[i].mac & 0xFF0000ULL) >> 16;
+		ptr[4] = (hosts[i].mac & 0xFF00ULL) >> 8;
+		ptr[5] = (hosts[i].mac & 0xFFULL);
+		ptr[6] = (hosts[i].ip & 0xFF000000) >> 24;
+		ptr[7] = (hosts[i].ip & 0xFF0000) >> 16;
+		ptr[8] = (hosts[i].ip & 0xFF00) >> 8;
+		ptr[9] = (hosts[i].ip & 0xFF);
+        ptr[10] = (hosts[i].port & 0xFF00) >> 8;
+        ptr[11] = (hosts[i].port & 0xFF);
 		if(count==100) // Maximum number of hosts per packet
 		{
 			unsigned long size = count * 12 + 3;
@@ -265,13 +268,13 @@ int netSend(uint64_t mac, uint8_t *packet, unsigned long length)
 {
 	unsigned long destination;
 	int count;
-    struct host *scan;
+    int i;
 
 	// Broadcast FF:FF:FF:FF:FF:FF
 	if((mac == 0xFFFFFFFFFFFFULL) || ((mac & 0xFFFF00000000UL) == 0x333300000000UL)) {
-        for (scan = hosts; scan; scan = scan->next) {
-            if (scan->mac == myMAC) continue;
-			if(ipSend(scan->ip, scan->port, packet, length)>0) {
+        for (i = 0; i < MAX_HOSTS; i++) {
+            if (hosts[i].mac == myMAC) continue;
+			if(ipSend(hosts[i].ip, hosts[i].port, packet, length)>0) {
 				count++;
 			}
 		}
@@ -294,7 +297,10 @@ int netSend(uint64_t mac, uint8_t *packet, unsigned long length)
 int initNetwork() {
 	struct sockaddr_in reader, writer;
 
-    hosts = NULL;
+    int i;
+    for (i = 0; i < MAX_HOSTS; i++) {
+        hosts[i].valid = 0;
+    }
 
 	// First open the reading socket
 

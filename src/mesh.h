@@ -24,14 +24,17 @@ struct configuration {
 
 extern struct configuration config;
 
+#define MAX_HOSTS 100
 struct host {
+    uint8_t valid;
     uint64_t mac;
     uint32_t ip;
     uint16_t port;
+    time_t seen;
     struct host *next;
 };
 
-extern struct host *hosts;
+extern struct host hosts[MAX_HOSTS];
 
 extern void startNetReader();
 extern void startTapReader();
@@ -64,6 +67,7 @@ extern unsigned long tapdev;
 extern char tapname[16];
 extern uint64_t myMAC;
 extern pthread_t tapReader;
+extern pthread_t periodic;
 extern pthread_t netReader;
 
 // Data types

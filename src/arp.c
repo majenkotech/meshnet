@@ -1,36 +1,45 @@
 #include <stdint.h>
 #include <inttypes.h>
+#include <time.h>
 
 #include "mesh.h"
 
-struct host *hosts = NULL;
+struct host hosts[MAX_HOSTS];
 
 void dumpMap() {
-    struct host *scan;
+    int i;
     printf("Map dump\n");
     
-    for (scan = hosts; scan; scan = scan->next) {
-        printf("  %012" PRIx64 " = %s:%d\n", scan->mac, ntoa(scan->ip), scan->port);
+    for (i = 0; i < MAX_HOSTS; i++) {
+        if (hosts[i].valid == 1) {
+            printf("  %012" PRIx64 " = %s:%d\n", hosts[i].mac, ntoa(hosts[i].ip), hosts[i].port);
+        }
 	}
 }
 
 uint32_t getHost(uint64_t address) {
-    struct host *scan;
+    int i;
+    for (i = 0; i < MAX_HOSTS; i++) {
+        if (hosts[i].valid == 0) {
+            continue;
+        }
 
-    for (scan = hosts; scan; scan = scan->next) {
-        if (scan->mac == address) {
-            return scan->ip;
+        if (hosts[i].mac == address) {
+            return hosts[i].ip;
         }
     }
     return -1;
 }
 
 uint16_t getPort(uint64_t address) {
-    struct host *scan;
+    int i;
+    for (i = 0; i < MAX_HOSTS; i++) {
+        if (hosts[i].valid == 0) {
+            continue;
+        }
 
-    for (scan = hosts; scan; scan = scan->next) {
-        if (scan->mac == address) {
-            return scan->port;
+        if (hosts[i].mac == address) {
+            return hosts[i].port;
         }
     }
     return -1;
@@ -40,23 +49,17 @@ uint16_t getPort(uint64_t address) {
 // but the MAC address does NOT.  These are redundant entries from some time in
 // the past and must be deleted.
 void purgeHostsTable(uint64_t mac, uint32_t ip, uint16_t port) {
-return; // broken
-    if (hosts == NULL) return;
+    int i;
 
-    if ((hosts->ip == ip) && (hosts->port == port) && (hosts->mac != mac)) {
-        struct host *old = hosts;
-        hosts = hosts->next;
-        free(old);
-        return;
-    }
+    for (i = 0; i < MAX_HOSTS; i++) {
+        if (hosts[i].valid = 0) continue;
 
-    struct host *scan;
-    for (scan = hosts; scan && scan->next; scan = scan->next) {
-        if ((scan->next->ip == ip) && (scan->next->port == port) && (scan->next->mac != mac)) {
-            struct host *old = scan->next;
-            scan->next = scan->next->next;
-            free(old);
-        } 
+        if ((hosts[i].ip == ip) && (hosts[i].port == port) && (hosts[i].mac != mac)) {
+#ifdef DEBUG
+            printf("Purging %012" PRIx64" at %s:%d\n", hosts[i].mac, ntoa(hosts[i].ip), hosts[i].port);
+#endif
+            hosts[i].valid = 0;
+        }
     }
 }
 
@@ -73,53 +76,38 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp) {
     );
 #endif
 
-    struct host *scan;
+    int i;
 
-    for (scan = hosts; scan; scan = scan->next) {
-        if ((scan->ip == ip) && (scan->mac == mac) && (scan->port == port)) {
-#ifdef DEBUG
-            printf("Found dupliacte\n");
-#endif
-            purgeHostsTable(mac, ip, port);
-            return 0;
-        }
-        if (scan->mac == mac) {
-            if (updateIp == 1) {
-#ifdef DEBUG
-                printf("Updating IP address for %012" PRIx64 " from %s:%d\n",
-                    scan->mac, ntoa(scan->ip), scan->port);
-#endif
-                scan->ip == ip;
-                scan->port = port;
-#ifdef DEBUG
-                printf("          to %s:%d\n",
-                    ntoa(scan->ip), scan->port);
-#endif
-                purgeHostsTable(mac, ip, port);
-            } else {
-                return 0;
+    int found = 0;
+    for (i = 0; i < MAX_HOSTS; i++) {
+        if (hosts[i].valid == 0) continue;
+        if ((hosts[i].ip == ip) && (hosts[i].mac == mac) && (hosts[i].port == port)) {
+            found = 1;
+            if (updateIp) {
+                hosts[i].seen = time(NULL);
             }
-            return 1;
+            // Already there, skip.
+            break;
+        }
+        if (hosts[i].mac == mac) {
+            if (updateIp == 1) {
+                hosts[i].seen = time(NULL);
+                hosts[i].ip = ip;
+                hosts[i].port = port;
+                found = 1;
+                break;
+            }
         }
     }
 
-    struct host *newhost = (struct host *)malloc(sizeof(struct host));
-    newhost->ip = ip;
-    newhost->mac = mac;
-    newhost->port = port;
-    newhost->next = NULL;
-
-#ifdef DEBUG
-    printf("Adding new host mapping for %012" PRIx64 " = %s:%d\n",
-        newhost->mac, ntoa(newhost->ip), newhost->port);
-#endif
-
-    if (hosts == NULL) {
-        hosts = newhost;
-    } else {
-        for (scan = hosts; scan; scan = scan->next) {
-            if (scan->next == NULL) {
-                scan->next = newhost;
+    if (!found) {
+        for (i = 0; i < MAX_HOSTS; i++) {
+            if (hosts[i].valid == 0) {
+                hosts[i].ip = ip;
+                hosts[i].mac = mac;
+                hosts[i].port = port;
+                hosts[i].valid = 1;
+                hosts[i].seen = time(NULL);
                 break;
             }
         }

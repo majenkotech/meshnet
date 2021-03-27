@@ -19,9 +19,11 @@ void *periodicThread(void *arg)
             printf("Running periodic announcement\n");
 #endif
             struct host *scan;
-            for (scan = hosts; scan; scan = scan->next) {
-                if (scan->mac == myMAC) continue;
-				announceMe(scan->ip, scan->port);
+            int i;
+            for (i = 0; i < MAX_HOSTS; i++) {
+                if (hosts[i].valid == 0) continue;
+                if (hosts[i].mac == myMAC) continue;
+				announceMe(hosts[i].ip, hosts[i].port);
 			}
 
             for (i = 0; (i < MAX_PEERS) && (config.peerips[i] != -1); i++) {

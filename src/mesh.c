@@ -9,7 +9,11 @@
 
 #include "mesh.h"
 
+int masterTerminate = 0;
+
 struct configuration config;
+
+void closedown();
 
 void threadexit(int signal) {
 	// Do nothing much
@@ -19,6 +23,7 @@ void cleanexit(int signal) {
 #ifdef DEBUG
 	printf("Terminating.\n");
 #endif
+    closedown();
 //	pthread_kill(tapReader,SIGINT);
 //	pthread_kill(netReader,SIGINT);
 //	closeTapDevice();
@@ -137,8 +142,10 @@ int loadConfig(const char *file) {
                 continue;
             }
 
-            if ((strcasecmp(key, "fork") == 0) && (strcasecmp(val, "yes") == 0)) {
-                config.fork = 1;
+            if (strcasecmp(key, "fork") == 0) {
+                if (strcasecmp(val, "yes") == 0) {
+                    config.fork = 1;
+                }
                 continue;
             }
 
@@ -151,6 +158,29 @@ int loadConfig(const char *file) {
     }
     fclose(f);
     return 0;
+}
+
+void closedown() {
+    if (config.ifdown[0]) {
+        pid_t down = fork();
+        if (!down) {
+            char p[7];
+            sprintf(p, "%d", config.port);
+            execl(config.ifdown, "ifdown-meshnet", tapname, p, NULL);
+            return;
+        } else {
+            int status = 0;
+#ifdef DEBUG
+            printf("Waiting for ifdown process\n");
+#endif
+            while (wait(&status) > 0);
+#ifdef DEBUG
+            printf("Done\n");
+#endif
+        }
+    }
+
+	closeTapDevice();
 }
 
 int main(int argc, char *argv[]) {
@@ -201,7 +231,9 @@ int main(int argc, char *argv[]) {
 
     if (config.ifup[0]) {
         if (!fork()) {
-            execl(config.ifup, "ifup-meshnet", tapname, NULL);
+            char p[7];
+            sprintf(p, "%d", config.port);
+            execl(config.ifup, "ifup-meshnet", tapname, p, NULL);
             return 0;
         }
     }
@@ -219,15 +251,10 @@ int main(int argc, char *argv[]) {
     }
 
 	pthread_join(tapReader,NULL);
+    pthread_join(netReader, NULL);
+    pthread_join(periodic, NULL);
 
-    if (config.ifdown[0]) {
-        if (!fork()) {
-            execl(config.ifdown, "ifdown-meshnet", tapname, NULL);
-            return 0;
-        }
-    }
-
-	closeTapDevice();
+    closedown();
 
 	return 0;
 }
