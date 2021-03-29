@@ -60,7 +60,7 @@ int loadConfig(int argc, char **argv) {
     int opt;
 
     optind = 1;
-    while ((opt = getopt(argc, argv, "c:")) != -1) {
+    while ((opt = getopt(argc, argv, "fdc:")) != -1) {
         switch (opt) {
             case 'c': 
                 file = optarg;
