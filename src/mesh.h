@@ -16,7 +16,6 @@ struct configuration {
     char psk[1024];                 // AES PSK
     uint32_t peerips[MAX_PEERS];    // List of peer IPs
     uint16_t peerports[MAX_PEERS];  // List of peer ports
-    uint32_t address;               // Public IP address
     uint32_t announce;              // Announce period
     uint16_t port;                  // Communication UDP port
     uint8_t fork;                   // Should we fork into the backgroun?

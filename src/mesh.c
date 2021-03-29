@@ -79,7 +79,6 @@ int loadConfig(int argc, char **argv) {
     config.ifdown[0] = 0;
     config.psk[0] = 0;
     config.peerips[0] = -1;
-    config.address = -1;
     config.announce = 60;
     config.port = 3647;
     config.fork = 0;
@@ -133,11 +132,6 @@ int loadConfig(int argc, char **argv) {
                     config.peerips[peerno] = -1;
                     peer = strtok(NULL, ",");
                 }
-                continue;
-            }
-
-            if (strcasecmp(key, "ip") == 0) {
-                config.address = inet_addr(val);
                 continue;
             }
 
@@ -244,10 +238,6 @@ int main(int argc, char **argv) {
 	startNetReader();
 	startPeriodic();
 	sleep(1);
-
-    if (config.address != -1) {
-		setHost(myMAC, config.address, config.port, 1, 1);
-	}
 
     if (config.ifup[0]) {
         if (!fork()) {

@@ -118,6 +118,13 @@ void *netReaderThread(void *arg)
 	readlen = aes_recvfrom(readsocket,buffer,1599,0,(struct sockaddr *) &client, &clilen);
 	while(readlen>=0) {
         if (readlen > 0) {
+
+            dbg_printf("Received packet type %s from network\n", 
+                *buffer == DT_PART1 ? "DT_PART1" :
+                *buffer == DT_PART2 ? "DT_PART2" :
+                *buffer == DT_DATA ? "DT_DATA" :
+                *buffer == DT_COMMAND ? "DT_COMMAND" : "UNKNOWN");
+
             // Now to decide what to do with it.
             switch(*buffer) {
                 case DT_PART1: {
