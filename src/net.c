@@ -237,7 +237,7 @@ void startNetReader()
 
 int ipSend(uint32_t ip, uint16_t port, uint8_t *packet, unsigned long length)
 {
-    TRACE
+    dbg_printf("ipSend(%s, %d, ..., %d)\n", ntoa(ip), port, length);
 	int rc;
 	struct sockaddr_in remoteServer;
 	remoteServer.sin_family = AF_INET;
