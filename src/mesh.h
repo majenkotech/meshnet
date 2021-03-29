@@ -20,6 +20,7 @@ struct configuration {
     uint32_t announce;              // Announce period
     uint16_t port;                  // Communication UDP port
     uint8_t fork;                   // Should we fork into the backgroun?
+    uint8_t debug;                  // Enable debug messages
 };
 
 extern struct configuration config;
@@ -69,6 +70,8 @@ extern uint64_t myMAC;
 extern pthread_t tapReader;
 extern pthread_t periodic;
 extern pthread_t netReader;
+
+extern int dbg_printf(const char *format, ...);
 
 // Data types
 #define DT_DATA 0x00

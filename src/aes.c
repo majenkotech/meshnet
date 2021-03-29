@@ -33,9 +33,7 @@ int aes_init(char *psk)
 		mcrypt_perror(i);
 		return -1;
 	}
-#ifdef DEBUG
-    printf("Encryption system initialized\n");
-#endif
+    dbg_printf("Encryption system initialized\n");
 	return 0;
 }
 

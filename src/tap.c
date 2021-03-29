@@ -58,15 +58,13 @@ void *tapReaderThread(void *arg)
 		packet[0] = DT_DATA;
 		memcpy(packet+1,buffer,n);
 
-#ifdef DEBUG
-                    printf("== Received frame from tap type %02x%02x==\n", buffer[12], buffer[13]);
+                    dbg_printf("== Received frame from tap type %02x%02x==\n", buffer[12], buffer[13]);
                     if ((buffer[12] == 0x86) && (buffer[13] == 0xdd)) {
-                        printf("Source:      %02x:%02x:%02x:%02x:%02x:%02x\n",
+                        dbg_printf("Source:      %02x:%02x:%02x:%02x:%02x:%02x\n",
                             buffer[6], buffer[7], buffer[8], buffer[9], buffer[10], buffer[11]);
-                        printf("Destination: %02x:%02x:%02x:%02x:%02x:%02x\n",
+                        dbg_printf("Destination: %02x:%02x:%02x:%02x:%02x:%02x\n",
                             buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5]);
                     }
-#endif
 
 
 		// Extract the destination MAC address from the packet header
@@ -99,13 +97,9 @@ void openTapDevice()
     tapname[0] = 0;
 	tapdev = tap_open(tapname);
     if (tapdev >= 0) {
-#ifdef DEBUG
-        printf("Opened TAP device %s\n",tapname);
-#endif
+        dbg_printf("Opened TAP device %s\n",tapname);
         getMyMacAddress();
-#ifdef DEBUG
-        printf("My MAC address: %012" PRIx64 "\n", myMAC);
-#endif
+        dbg_printf("My MAC address: %012" PRIx64 "\n", myMAC);
     } else {
         printf("Unable to open TAP device: %s\n", strerror(errno));
     }

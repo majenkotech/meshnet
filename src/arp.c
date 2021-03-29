@@ -7,6 +7,7 @@
 struct host hosts[MAX_HOSTS];
 
 void dumpMap() {
+    if (config.debug == 0) return;
     int i;
     printf("Map dump\n");
     
@@ -55,9 +56,7 @@ int purgeHostsTable(uint64_t mac, uint32_t ip, uint16_t port) {
         if (hosts[i].valid = 0) continue;
 
         if ((hosts[i].ip == ip) && (hosts[i].port == port) && (hosts[i].mac != mac)) {
-#ifdef DEBUG
-            printf("Purging %012" PRIx64" at %s:%d\n", hosts[i].mac, ntoa(hosts[i].ip), hosts[i].port);
-#endif
+            dbg_printf("Purging %012" PRIx64" at %s:%d\n", hosts[i].mac, ntoa(hosts[i].ip), hosts[i].port);
             hosts[i].valid = 0;
             modified = 1;
         }
@@ -74,11 +73,9 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp, uint8_t 
 
     int modified = 0;
 
-#ifdef DEBUG
-    printf("setHost(%012" PRIx64 ", %s, %d, %d)\n",
+    dbg_printf("setHost(%012" PRIx64 ", %s, %d, %d)\n",
         mac, ntoa(ip), port, updateIp
     );
-#endif
 
     int i;
 
@@ -121,9 +118,7 @@ int setHost(uint64_t mac, uint32_t ip, uint16_t port, uint8_t updateIp, uint8_t 
         }
     }
 
-#ifdef DEBUG
     dumpMap();
-#endif
 
     return modified;
 }

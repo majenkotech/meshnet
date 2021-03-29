@@ -25,7 +25,7 @@ int writesocket;
 static int one = 1;
 
 void printMac(uint64_t mac) {
-	printf("%012" PRIx64 " = %02" PRIx8 " %02" PRIx8 " %02" PRIx8 " %02" PRIx8 " %02" PRIx8 " %02" PRIx8 "\n",
+	dbg_printf("%012" PRIx64 " = %02" PRIx8 " %02" PRIx8 " %02" PRIx8 " %02" PRIx8 " %02" PRIx8 " %02" PRIx8 "\n",
 		mac,
 		(uint8_t)((mac >> 40) & 0xFF),
 		(uint8_t)((mac >> 32) & 0xFF),
@@ -92,9 +92,7 @@ void broadcastHosts()
 	}
 	if(count>0)
 	{
-#ifdef DEBUG
-		printf("Broadcasting %d addresses\n", count);
-#endif	
+		dbg_printf("Broadcasting %d addresses\n", count);
 		unsigned long size = count * 12 + 3;
 		packet[2] = count;
 		broadcastPacket(packet,size);
@@ -138,26 +136,18 @@ void *netReaderThread(void *arg)
                     memset(all, 0, 3200);
                     memcpy(all,part1,part1len);
                     memcpy(all+part1len,part2,part2len);
-#ifdef DEBUG
-                    printf("== Received split frame from network ==\n");
-#endif
+                    dbg_printf("== Received split frame from network ==\n");
                     if (write(tapdev,all,part1len+part2len) <= 0) {
-#ifdef DEBUG
-                        printf("Write error sending packet\n");
-#endif
+                        dbg_printf("Write error sending packet\n");
                     }
                 } break;
                 case DT_DATA: {
                     // This is a data packet.  Forward it to the TAP device.
                     payload = buffer+1;
-#ifdef DEBUG
-                    printf("== Received frame from network type %02x%02x==\n", payload[12], payload[13]);
-#endif
+                    dbg_printf("== Received frame from network type %02x%02x==\n", payload[12], payload[13]);
 
                     if (write(tapdev,payload,readlen-1) <= 0) {
-#ifdef DEBUG
-                        printf("Write error sending packet\n");
-#endif
+                        dbg_printf("Write error sending packet\n");
                     }
                 } break;
                 case DT_COMMAND: {
@@ -363,9 +353,7 @@ char *ntoa(uint32_t ip)
 
 void announceMe(uint32_t ip, uint16_t port) {
 
-#ifdef DEBUG
-    printf("announceMe(%s, %d)\n", ntoa(ip), port);
-#endif
+    dbg_printf("announceMe(%s, %d)\n", ntoa(ip), port);
 	uint8_t *packet;
 
 	// Packet format: 0x01 0x00 M0 M1 M2 M3 M4 M5 PH PL <PSK>

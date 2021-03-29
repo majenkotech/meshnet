@@ -14,10 +14,8 @@ void *periodicThread(void *arg)
 		// Once a minute - announce me to everyone I know of
 		if((time(NULL) % config.announce) == 0)
 		{
-#ifdef DEBUG
             dumpMap();
-            printf("Running periodic announcement\n");
-#endif
+            dbg_printf("Running periodic announcement\n");
             int i,j;
             for (i = 0; i < MAX_HOSTS; i++) {
                 if (hosts[i].valid == 0) continue;

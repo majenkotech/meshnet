@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include "mesh.h"
 
@@ -20,13 +21,8 @@ void threadexit(int signal) {
 }
 
 void cleanexit(int signal) {
-#ifdef DEBUG
-	printf("Terminating.\n");
-#endif
+	dbg_printf("Terminating.\n");
     closedown();
-//	pthread_kill(tapReader,SIGINT);
-//	pthread_kill(netReader,SIGINT);
-//	closeTapDevice();
 	exit(0);
 }
 
@@ -58,7 +54,21 @@ char *trimWhiteSpace(char *str) {
   return str;
 }
 
-int loadConfig(const char *file) {
+int loadConfig(int argc, char **argv) {
+
+    char *file = SYSCONF "/meshnet/default.mesh";
+    int opt;
+
+    optind = 1;
+    while ((opt = getopt(argc, argv, "c:")) != -1) {
+        switch (opt) {
+            case 'c': 
+                file = optarg;
+                break;
+        }
+    }
+
+
     FILE *f = fopen(file, "r");
     if (!f) {
         printf("Unable to open %s: %s\n", file, strerror(errno));
@@ -73,6 +83,7 @@ int loadConfig(const char *file) {
     config.announce = 60;
     config.port = 3647;
     config.fork = 0;
+    config.debug = 0;
 
     char temp[1024];
     int line = 0;
@@ -117,9 +128,7 @@ int loadConfig(const char *file) {
                     config.peerips[peerno] = inet_addr(peer);
                     config.peerports[peerno] = port;
 
-#if DEBUG
-                    printf("Adding peer %s:%d\n", ntoa(config.peerips[peerno]), config.peerports[peerno]);
-#endif
+                    dbg_printf("Adding peer %s:%d\n", ntoa(config.peerips[peerno]), config.peerports[peerno]);
                     peerno++;
                     config.peerips[peerno] = -1;
                     peer = strtok(NULL, ",");
@@ -149,6 +158,13 @@ int loadConfig(const char *file) {
                 continue;
             }
 
+            if (strcasecmp(key, "debug") == 0) {
+                if (strcasecmp(val, "yes") == 0) {
+                    config.debug = 1;
+                }
+                continue;
+            }
+
             printf("Syntax error at line %d\n", line);
         } else {
             printf("Syntax error at line %d\n", line);
@@ -157,6 +173,20 @@ int loadConfig(const char *file) {
         }
     }
     fclose(f);
+
+    optind = 1;
+    while ((opt = getopt(argc, argv, "fdc:")) != -1) {
+        switch (opt) {
+            case 'd': 
+                config.debug = 1;
+                break;
+            case 'f':
+                config.fork = 1;
+                break;
+        }
+    }
+
+
     return 0;
 }
 
@@ -170,20 +200,16 @@ void closedown() {
             return;
         } else {
             int status = 0;
-#ifdef DEBUG
-            printf("Waiting for ifdown process\n");
-#endif
+            dbg_printf("Waiting for ifdown process\n");
             while (wait(&status) > 0);
-#ifdef DEBUG
-            printf("Done\n");
-#endif
+            dbg_printf("Done\n");
         }
     }
 
 	closeTapDevice();
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char **argv) {
     int i;
 
 	signal(SIGINT,  &cleanexit);
@@ -191,14 +217,8 @@ int main(int argc, char *argv[]) {
 	signal(SIGTERM, &cleanexit);
     signal(SIGCHLD, &reap);
 
-    if (argc != 2) {
-        if (loadConfig(SYSCONF "/meshnet/default.mesh") == -1) {
-            return -1;
-        }
-    } else {
-        if (loadConfig(argv[1]) == -1) {
-            return -1;
-        }
+    if (loadConfig(argc, argv) == -1) {
+        return -1;
     }
 
     if (config.psk[0] == 0) {
@@ -239,14 +259,12 @@ int main(int argc, char *argv[]) {
     }
         
     for (i = 0; (i < MAX_PEERS) && (config.peerips[i] != -1); i++) {
-#ifdef DEBUG
-        printf("Announcing to %d.%d.%d.%d\n",
+        dbg_printf("Announcing to %d.%d.%d.%d\n",
             (config.peerips[i] >> 0) & 0xFF,
             (config.peerips[i] >> 8) & 0xFF,
             (config.peerips[i] >> 16) & 0xFF,
             (config.peerips[i] >> 24) & 0xFF
         );
-#endif
         announceMe(config.peerips[i], config.peerports[i]);
     }
 
