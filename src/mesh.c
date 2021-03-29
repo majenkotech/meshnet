@@ -259,8 +259,8 @@ int main(int argc, char **argv) {
     }
 
 	pthread_join(tapReader,NULL);
-    pthread_join(netReader, NULL);
-    pthread_join(periodic, NULL);
+//    pthread_join(netReader, NULL);
+//    pthread_join(periodic, NULL);
 
     closedown();
 

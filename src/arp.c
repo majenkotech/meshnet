@@ -20,12 +20,18 @@ void dumpMap() {
 
 uint32_t getHost(uint64_t address) {
     int i;
+    dbg_printf("getHost(%012" PRIx64 ")\n", address);
     for (i = 0; i < MAX_HOSTS; i++) {
+
+
         if (hosts[i].valid == 0) {
             continue;
         }
 
+        dbg_printf("  %012" PRIx64 " - %s\n", hosts[i].mac, ntoa(hosts[i].ip));
+
         if (hosts[i].mac == address) {
+            dbg_printf("  -> Match found\n");
             return hosts[i].ip;
         }
     }

@@ -301,9 +301,11 @@ int netSend(uint64_t mac, uint8_t *packet, unsigned long length)
             if (ip != -1) {
                 return ipSend(ip, port, packet, length);
             } else {
+                dbg_printf("No matching host found to send to\n");
                 return -1;
             }
         } else {
+            dbg_printf("I think I'm sending to myself\n");
             return -1;
         }
 	}
@@ -359,7 +361,6 @@ int initNetwork() {
 
 uint32_t aton(const char *addr)
 {
-    TRACE
 	struct sockaddr_in host;
 	if(inet_aton(addr,&host.sin_addr) == 0)
 	{
@@ -370,7 +371,6 @@ uint32_t aton(const char *addr)
 
 char *ntoa(uint32_t ip)
 {
-    TRACE
 	struct sockaddr_in host;
 	host.sin_addr.s_addr=ip;
 	return inet_ntoa(host.sin_addr);
@@ -410,7 +410,6 @@ void announceMe(uint32_t ip, uint16_t port) {
 }
 
 uint64_t str2mac(char *address) {
-    TRACE
 	unsigned int m1,m2,m3,m4,m5,m6;
 	uint64_t mac = 0x0ULL;
 	if(sscanf(address,"%02X:%02X:%02X:%02X:%02X:%02X",
@@ -428,7 +427,6 @@ uint64_t str2mac(char *address) {
 
 char *mac2str(uint64_t mac)
 {
-    TRACE
 	static char address[19];
 	sprintf(address,"%02X:%02X:%02X:%02X:%02X:%02X\n",
 		(uint8_t)((mac >> 40) & 0xFF),
