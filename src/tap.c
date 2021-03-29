@@ -57,7 +57,7 @@ void *tapReaderThread(void *arg)
 		memset(packet,0,1600);
 		packet[0] = DT_DATA;
 		memcpy(packet+1,buffer,n);
-
+/*
                     dbg_printf("== Received frame from tap type %02x%02x==\n", buffer[12], buffer[13]);
                     if ((buffer[12] == 0x86) && (buffer[13] == 0xdd)) {
                         dbg_printf("Source:      %02x:%02x:%02x:%02x:%02x:%02x\n",
@@ -65,7 +65,7 @@ void *tapReaderThread(void *arg)
                         dbg_printf("Destination: %02x:%02x:%02x:%02x:%02x:%02x\n",
                             buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5]);
                     }
-
+*/
 
 		// Extract the destination MAC address from the packet header
 		mac = 0x0ULL;
