@@ -42,6 +42,7 @@ void broadcastPacket(uint8_t *packet, unsigned long size)
 
 void broadcastHosts()
 {
+    TRACE
 	uint8_t packet[1600];
     uint8_t *ptr;
 	int offset;
@@ -101,6 +102,7 @@ void broadcastHosts()
 
 void *netReaderThread(void *arg)
 {
+    TRACE
 	struct sockaddr_in client;
 	int clilen, readlen;
 	uint8_t buffer[1600];
@@ -227,6 +229,7 @@ void *netReaderThread(void *arg)
 
 void startNetReader()
 {
+    TRACE
         pthread_attr_t attr;
         pthread_attr_init(&attr);
         pthread_create(&netReader, &attr, netReaderThread, NULL);
@@ -234,11 +237,21 @@ void startNetReader()
 
 int ipSend(uint32_t ip, uint16_t port, uint8_t *packet, unsigned long length)
 {
+    TRACE
 	int rc;
 	struct sockaddr_in remoteServer;
 	remoteServer.sin_family = AF_INET;
 	remoteServer.sin_port = htons(port);
 	remoteServer.sin_addr.s_addr = ip;
+
+    dbg_printf("Sending packet of type %s to %s:%d\n", 
+        *packet == DT_PART1 ? "DT_PART1" :
+        *packet == DT_PART2 ? "DT_PART2" :
+        *packet == DT_DATA ? "DT_DATA" :
+        *packet == DT_COMMAND ? "DT_COMMAND" : "UNKNOWN",
+        ntoa(ip),
+        port);
+        
 
 	if(*packet==DT_DATA && length>1400)
 	{
@@ -266,6 +279,7 @@ int ipSend(uint32_t ip, uint16_t port, uint8_t *packet, unsigned long length)
 
 int netSend(uint64_t mac, uint8_t *packet, unsigned long length)
 {
+    dbg_printf("netSend(%012" PRIx64 ", ..., %d)\n", mac, length);
 	unsigned long destination;
 	int count;
     int i;
@@ -274,6 +288,7 @@ int netSend(uint64_t mac, uint8_t *packet, unsigned long length)
 	if((mac == 0xFFFFFFFFFFFFULL) || ((mac & 0xFFFF00000000UL) == 0x333300000000UL)) {
         for (i = 0; i < MAX_HOSTS; i++) {
             if (hosts[i].mac == myMAC) continue;
+            if (hosts[i].valid == 0) continue;
 			if(ipSend(hosts[i].ip, hosts[i].port, packet, length)>0) {
 				count++;
 			}
@@ -295,6 +310,7 @@ int netSend(uint64_t mac, uint8_t *packet, unsigned long length)
 }
 
 int initNetwork() {
+    TRACE
 	struct sockaddr_in reader, writer;
 
     int i;
@@ -343,6 +359,7 @@ int initNetwork() {
 
 uint32_t aton(const char *addr)
 {
+    TRACE
 	struct sockaddr_in host;
 	if(inet_aton(addr,&host.sin_addr) == 0)
 	{
@@ -353,6 +370,7 @@ uint32_t aton(const char *addr)
 
 char *ntoa(uint32_t ip)
 {
+    TRACE
 	struct sockaddr_in host;
 	host.sin_addr.s_addr=ip;
 	return inet_ntoa(host.sin_addr);
@@ -360,6 +378,7 @@ char *ntoa(uint32_t ip)
 
 void announceMe(uint32_t ip, uint16_t port) {
 
+    TRACE
     dbg_printf("announceMe(%s, %d)\n", ntoa(ip), port);
 	uint8_t *packet;
 
@@ -391,6 +410,7 @@ void announceMe(uint32_t ip, uint16_t port) {
 }
 
 uint64_t str2mac(char *address) {
+    TRACE
 	unsigned int m1,m2,m3,m4,m5,m6;
 	uint64_t mac = 0x0ULL;
 	if(sscanf(address,"%02X:%02X:%02X:%02X:%02X:%02X",
@@ -408,6 +428,7 @@ uint64_t str2mac(char *address) {
 
 char *mac2str(uint64_t mac)
 {
+    TRACE
 	static char address[19];
 	sprintf(address,"%02X:%02X:%02X:%02X:%02X:%02X\n",
 		(uint8_t)((mac >> 40) & 0xFF),

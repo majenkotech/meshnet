@@ -72,6 +72,8 @@ extern pthread_t netReader;
 
 extern int dbg_printf(const char *format, ...);
 
+#define TRACE dbg_printf("%s\n", __PRETTY_FUNCTION__);
+
 // Data types
 #define DT_DATA 0x00
 #define DT_COMMAND 0x01
