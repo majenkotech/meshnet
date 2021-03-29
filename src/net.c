@@ -285,7 +285,7 @@ int netSend(uint64_t mac, uint8_t *packet, unsigned long length)
     int i;
 
 	// Broadcast FF:FF:FF:FF:FF:FF
-	if((mac == 0xFFFFFFFFFFFFULL) || ((mac & 0xFFFF00000000UL) == 0x333300000000UL)) {
+	if((mac & 1) || ((mac & 0xFFFF00000000UL) == 0x333300000000UL)) {
         for (i = 0; i < MAX_HOSTS; i++) {
             if (hosts[i].mac == myMAC) continue;
             if (hosts[i].valid == 0) continue;
