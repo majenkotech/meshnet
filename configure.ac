@@ -15,6 +15,10 @@ AC_SEARCH_LIBS(mhash_keygen, mhash,[], [
     AC_MSG_ERROR([libmhash-dev is needed])
 ])
 
+AC_SEARCH_LIBS(LZ4_compress_default, lz4,[], [
+    AC_MSG_ERROR([liblz4-dev is needed])
+])
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
