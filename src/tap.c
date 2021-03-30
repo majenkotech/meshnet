@@ -25,20 +25,15 @@ void getMyMacAddress()
     struct ifaddrs *addrlist, *addr;
 
     getifaddrs(&addrlist);
-    myMAC = 0x0ULL;
-
-    dbg_printf("Finding my MAC address\n");
 
     for(addr = addrlist; addr!=NULL; addr=addr->ifa_next)
     {
-        dbg_printf("  Testing %s == %s\n", addr->ifa_name,tapname);
 		if(!strcmp(addr->ifa_name,tapname))
 		{
-            dbg_printf("    Testing %d == %d\n", addr->ifa_addr->sa_family, AF_PACKET);
 			if(addr->ifa_addr->sa_family == AF_PACKET)
 			{
-                dbg_printf("  Found entry\n");
 				struct sockaddr_ll *ll = (struct sockaddr_ll *) addr->ifa_addr;
+				myMAC = 0x0ULL;
 
                 myMAC |= ((uint64_t)ll->sll_addr[0] << 40);
                 myMAC |= ((uint64_t)ll->sll_addr[1] << 32);
@@ -46,8 +41,6 @@ void getMyMacAddress()
                 myMAC |= ((uint64_t)ll->sll_addr[3] << 16);
                 myMAC |= ((uint64_t)ll->sll_addr[4] << 8);
                 myMAC |= ((uint64_t)ll->sll_addr[5] << 0);
-                dbg_printf("  My MAC is %012" PRIx64 "\n", myMAC);
-                return;
 			}
 		}
     }
@@ -105,7 +98,6 @@ void openTapDevice()
 	tapdev = tap_open(tapname);
     if (tapdev >= 0) {
         dbg_printf("Opened TAP device %s\n",tapname);
-        sleep(1);
         getMyMacAddress();
         dbg_printf("My MAC address: %012" PRIx64 "\n", myMAC);
     } else {
