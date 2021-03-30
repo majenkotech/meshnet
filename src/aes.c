@@ -2,7 +2,9 @@
 #include <mhash.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <lz4.h>
 #include "mesh.h"
+
 
 MCRYPT mcb;
 
@@ -39,17 +41,23 @@ int aes_init(char *psk)
 
 int aes_sendto(int socket, uint8_t *buffer, int size, int flags, struct sockaddr *remoteServer, int remoteLen)
 {
+	uint8_t compbuffer[1600];
+    int compsize;
 	uint8_t outbuffer[1600];
 	uint8_t *paste;
 	int rv,erv;
 	int esize;
 	int blocksize = mcrypt_enc_get_block_size(mcb);
+    memset(compbuffer, 0, 1600);
+    memset(outbuffer, 0, 1600);
+
+    compsize = LZ4_compress_default(buffer, compbuffer, size, 1600);
 
 	if(size % blocksize == 0)
 	{
-		esize = size;
+		esize = compsize;
 	} else {
-		esize = ((size / blocksize) + 1) * blocksize;
+		esize = ((compsize / blocksize) + 1) * blocksize;
 	}
 
 	outbuffer[0] = (size & 0xFF00UL) >> 8;
@@ -58,7 +66,7 @@ int aes_sendto(int socket, uint8_t *buffer, int size, int flags, struct sockaddr
 
 	paste = outbuffer+2;
 
-	memcpy(paste,buffer,size);
+	memcpy(paste,compbuffer,compsize);
 	erv = mcrypt_generic(mcb,paste,esize);
 	rv = sendto(socket,outbuffer,esize+2,flags,remoteServer,remoteLen);
 	return rv;
@@ -68,6 +76,7 @@ int aes_recvfrom(int socket, uint8_t *buffer,int size,int flags,struct sockaddr 
 {
 	int rv,drv;
     uint8_t inbuffer[1600];
+    int decompsize;
 	uint16_t osize;
 
 	rv = recvfrom(socket,inbuffer,1600,flags,client,(socklen_t *)clilen);
@@ -88,7 +97,10 @@ int aes_recvfrom(int socket, uint8_t *buffer,int size,int flags,struct sockaddr 
     if (drv != 0) {
         return 0;
     }
-	memcpy(buffer,inbuffer+2,osize);
+
+    decompsize = LZ4_decompress_safe(inbuffer + 2, buffer, rv - 2, osize);
+
+//	memcpy(buffer,inbuffer+2,osize);
 	return osize;
 }
 
